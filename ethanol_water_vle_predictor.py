@@ -11,7 +11,9 @@ warnings.filterwarnings('ignore')
 
 class EtOH_Water_VLE_Predictor:
     """
-    Artificial Neural Network for predicting vapor compositions in ethanol-water mixtures
+    Thermodynamic neural network model for predicting vapor-liquid equilibrium 
+    in ethanol-water binary systems. Designed for chemical engineering applications
+    including distillation design and separation process optimization.
     """
     def __init__(self):
         self.model = None
@@ -20,7 +22,7 @@ class EtOH_Water_VLE_Predictor:
         self.trained = False
 
     def generate_training_data(self, n_points=320):
-        """Generate training data from experimental VLE data"""
+        """Generate thermodynamic training dataset from experimental VLE measurements"""
         # Original experimental data points
         original_data = {
             "xEtoh": [0, 0.019, 0.0721, 0.099, 0.1238, 0.1661, 0.2337, 0.2608, 
@@ -47,7 +49,7 @@ class EtOH_Water_VLE_Predictor:
         })
 
     def train(self, data_df=None):
-        """Train the ANN model"""
+        """Train the thermodynamic neural network model for VLE prediction"""
         if data_df is None:
             data_df = self.generate_training_data()
 
@@ -112,17 +114,17 @@ class EtOH_Water_VLE_Predictor:
         return results
 
     def predict_vapor_composition(self, x_ethanol, temperature, pressure=101.325):
-        """Predict vapor mole fraction for given conditions"""
+        """Predict vapor mole fraction for given thermodynamic conditions"""
         if not self.trained:
             raise ValueError("Model must be trained before making predictions")
 
         # Validate inputs
         if not (0 <= x_ethanol <= 1):
-            raise ValueError("Liquid mole fraction must be between 0 and 1")
+            raise ValueError("Liquid mole fraction must be between 0 and 1 for physical validity")
         if not (78 <= temperature <= 100):
-            raise ValueError("Temperature must be between 78°C and 100°C")
+            raise ValueError("Temperature must be between 78°C and 100°C for ethanol-water system")
         if pressure != 101.325:
-            print("Warning: Model trained only for atmospheric pressure (101.325 kPa)")
+            print("Warning: Thermodynamic model trained only for atmospheric pressure (101.325 kPa)")
 
         # Prepare input
         X_input = np.array([[x_ethanol, temperature, pressure]])
@@ -136,7 +138,7 @@ class EtOH_Water_VLE_Predictor:
         return np.clip(y_pred, 0, 1)
 
     def batch_predict(self, conditions_df):
-        """Predict vapor compositions for multiple conditions"""
+        """Predict vapor compositions for multiple thermodynamic state points"""
         if not self.trained:
             raise ValueError("Model must be trained before making predictions")
 
@@ -169,7 +171,7 @@ class EtOH_Water_VLE_Predictor:
             raise FileNotFoundError(f"Model files not found with prefix {filename_prefix}")
 
     def get_azeotrope_prediction(self):
-        """Get prediction at azeotrope conditions"""
+        """Get thermodynamic prediction at azeotrope conditions for ethanol-water system"""
         azeotrope_x = 0.8943
         azeotrope_T = 78.15
         y_pred = self.predict_vapor_composition(azeotrope_x, azeotrope_T)
@@ -180,18 +182,18 @@ class EtOH_Water_VLE_Predictor:
             'deviation_from_ideal': abs(y_pred - azeotrope_x)
         }
 
-# Training and prediction example
+# Thermodynamic training and prediction example for chemical engineering applications
 if __name__ == "__main__":
     predictor = EtOH_Water_VLE_Predictor()
     predictor.train()
 
-    # Predict vapor mole fraction at azeotrope
+    # Predict vapor mole fraction at azeotrope for distillation analysis
     azeo_pred = predictor.get_azeotrope_prediction()
-    print(f"Azeotrope prediction: {azeo_pred}")
+    print(f"Azeotrope thermodynamic prediction: {azeo_pred}")
 
-    # Sample prediction
+    # Sample VLE prediction for process design
     vapor_frac = predictor.predict_vapor_composition(0.5, 80.0)
-    print(f"Predicted vapor mole fraction at x=0.5, T=80.0C: {vapor_frac:.4f}")
+    print(f"Predicted vapor mole fraction at x=0.5, T=80.0°C: {vapor_frac:.4f}")
 
-    # Save model
+    # Save thermodynamic model for future use
     predictor.save_model()
